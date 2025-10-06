@@ -223,28 +223,36 @@
                     ]
                 };
                 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json; charset=UTF-8',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error('API Error (' + response.status + '): ' + (errorText || response.statusText));
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json; charset=UTF-8',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error('API Error (' + response.status + '): ' + (errorText || response.statusText));
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+                        return data.choices[0].message.content;
+                    }
+                    
+                    throw new Error('Unexpected response format from API');
+                } catch (error) {
+                    console.error('Fetch error details:', error);
+                    if (error.message === 'Failed to fetch') {
+                        throw new Error('CORS Error: DataRobot API is blocking requests from this domain. Please configure CORS settings in your DataRobot deployment to allow requests from: ' + window.location.origin);
+                    }
+                    throw error;
                 }
-                
-                const data = await response.json();
-                
-                if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-                    return data.choices[0].message.content;
-                }
-                
-                throw new Error('Unexpected response format from API');
             }
 
             _showResponse(text) {
