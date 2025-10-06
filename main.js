@@ -1,7 +1,5 @@
 (function() {
-    let widgetContainer = this;
-    
-    let tmpl = document.createElement('template');
+    const tmpl = document.createElement('template');
     tmpl.innerHTML = `
         <style>
             :host {
@@ -149,118 +147,123 @@
         </div>
     `;
 
-    customElements.define('com-datarobot-chat-widget', class extends HTMLElement {
-        constructor() {
-            super();
-            this._shadowRoot = this.attachShadow({mode: 'open'});
-            this._shadowRoot.appendChild(tmpl.content.cloneNode(true));
-            
-            this._elements = {
-                tokenInput: this._shadowRoot.getElementById('token-input'),
-                questionInput: this._shadowRoot.getElementById('question-input'),
-                submitBtn: this._shadowRoot.getElementById('submit-btn'),
-                responseContainer: this._shadowRoot.getElementById('response-container'),
-                responseText: this._shadowRoot.getElementById('response-text'),
-                loadingSpinner: this._shadowRoot.getElementById('loading-spinner')
-            };
-            
-            this._setupEventListeners();
-        }
-
-        _setupEventListeners() {
-            this._elements.submitBtn.addEventListener('click', () => this._handleSubmit());
-            
-            this._elements.questionInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    this._handleSubmit();
-                }
-            });
-        }
-
-        async _handleSubmit() {
-            const token = this._elements.tokenInput.value.trim();
-            const question = this._elements.questionInput.value.trim();
-            
-            if (!token) {
-                this._showError('Please enter an authorization token.');
-                return;
+    // Check if custom element is already defined
+    if (!customElements.get('com-datarobot-chat-widget')) {
+        customElements.define('com-datarobot-chat-widget', class extends HTMLElement {
+            constructor() {
+                super();
+                this._shadowRoot = this.attachShadow({mode: 'open'});
+                this._shadowRoot.appendChild(tmpl.content.cloneNode(true));
+                this._setupElements();
+                this._setupEventListeners();
             }
-            
-            if (!question) {
-                this._showError('Please enter a question.');
-                return;
-            }
-            
-            this._setLoading(true);
-            this._elements.responseContainer.classList.remove('show');
-            
-            try {
-                const response = await this._callDataRobotAPI(token, question);
-                this._showResponse(response);
-            } catch (error) {
-                this._showError(error.message);
-            } finally {
-                this._setLoading(false);
-            }
-        }
 
-        async _callDataRobotAPI(token, userQuestion) {
-            const url = 'https://app.datarobot.com/api/v2/deployments/68dd4901e523d57cde32d8bb/chat/completions';
-            
-            const requestBody = {
-                model: 'datarobot-deployed-llm',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a helpful assistant'
-                    },
-                    {
-                        role: 'user',
-                        content: userQuestion
+            _setupElements() {
+                this._elements = {
+                    tokenInput: this._shadowRoot.getElementById('token-input'),
+                    questionInput: this._shadowRoot.getElementById('question-input'),
+                    submitBtn: this._shadowRoot.getElementById('submit-btn'),
+                    responseContainer: this._shadowRoot.getElementById('response-container'),
+                    responseText: this._shadowRoot.getElementById('response-text'),
+                    loadingSpinner: this._shadowRoot.getElementById('loading-spinner')
+                };
+            }
+
+            _setupEventListeners() {
+                this._elements.submitBtn.addEventListener('click', () => this._handleSubmit());
+                
+                this._elements.questionInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        this._handleSubmit();
                     }
-                ]
-            };
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`);
+                });
             }
-            
-            const data = await response.json();
-            
-            if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-                return data.choices[0].message.content;
+
+            async _handleSubmit() {
+                const token = this._elements.tokenInput.value.trim();
+                const question = this._elements.questionInput.value.trim();
+                
+                if (!token) {
+                    this._showError('Please enter an authorization token.');
+                    return;
+                }
+                
+                if (!question) {
+                    this._showError('Please enter a question.');
+                    return;
+                }
+                
+                this._setLoading(true);
+                this._elements.responseContainer.classList.remove('show');
+                
+                try {
+                    const response = await this._callDataRobotAPI(token, question);
+                    this._showResponse(response);
+                } catch (error) {
+                    this._showError(error.message);
+                } finally {
+                    this._setLoading(false);
+                }
             }
-            
-            throw new Error('Unexpected response format from API');
-        }
 
-        _showResponse(text) {
-            this._elements.responseContainer.classList.remove('error-message');
-            this._elements.responseContainer.classList.add('show');
-            this._elements.responseText.textContent = text;
-        }
+            async _callDataRobotAPI(token, userQuestion) {
+                const url = 'https://app.datarobot.com/api/v2/deployments/68dd4901e523d57cde32d8bb/chat/completions';
+                
+                const requestBody = {
+                    model: 'datarobot-deployed-llm',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are a helpful assistant'
+                        },
+                        {
+                            role: 'user',
+                            content: userQuestion
+                        }
+                    ]
+                };
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('API Error (' + response.status + '): ' + (errorText || response.statusText));
+                }
+                
+                const data = await response.json();
+                
+                if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+                    return data.choices[0].message.content;
+                }
+                
+                throw new Error('Unexpected response format from API');
+            }
 
-        _showError(message) {
-            this._elements.responseContainer.classList.add('error-message', 'show');
-            this._elements.responseText.textContent = `Error: ${message}`;
-        }
+            _showResponse(text) {
+                this._elements.responseContainer.classList.remove('error-message');
+                this._elements.responseContainer.classList.add('show');
+                this._elements.responseText.textContent = text;
+            }
 
-        _setLoading(isLoading) {
-            this._elements.submitBtn.disabled = isLoading;
-            this._elements.loadingSpinner.style.display = isLoading ? 'inline-block' : 'none';
-            this._elements.tokenInput.disabled = isLoading;
-            this._elements.questionInput.disabled = isLoading;
-        }
-    });
+            _showError(message) {
+                this._elements.responseContainer.classList.add('error-message', 'show');
+                this._elements.responseText.textContent = 'Error: ' + message;
+            }
+
+            _setLoading(isLoading) {
+                this._elements.submitBtn.disabled = isLoading;
+                this._elements.loadingSpinner.style.display = isLoading ? 'inline-block' : 'none';
+                this._elements.tokenInput.disabled = isLoading;
+                this._elements.questionInput.disabled = isLoading;
+            }
+        });
+    }
 })();
