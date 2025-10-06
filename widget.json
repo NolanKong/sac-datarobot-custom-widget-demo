@@ -1,0 +1,22 @@
+{
+  "id": "com.datarobot.chat.widget",
+  "version": "1.0.0",
+  "name": "DataRobot Chat Widget",
+  "description": "A custom widget to interact with DataRobot LLM API",
+  "newInstancePrefix": "DataRobotChat",
+  "vendor": "Custom",
+  "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "license": "MIT",
+  "webcomponents": [
+    {
+      "kind": "main",
+      "tag": "com-datarobot-chat-widget",
+      "url": "https://github.com/NolanKong/sac-datarobot-custom-widget-demo/blob/main/main.js",
+      "integrity": "",
+      "ignoreIntegrity": true
+    }
+  ],
+  "properties": {},
+  "methods": {},
+  "events": {}
+}
