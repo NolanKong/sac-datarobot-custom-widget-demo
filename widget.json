@@ -1,5 +1,5 @@
 {
-  "id": "com.datarobot.chat.widget",
+  "id": "com.datarobot.chat.widget.v2",
   "version": "1.0.0",
   "name": "DataRobot Chat Widget",
   "description": "A custom widget to interact with DataRobot LLM API",
