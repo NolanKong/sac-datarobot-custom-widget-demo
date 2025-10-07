@@ -207,7 +207,7 @@
             }
 
             async _callDataRobotAPI(token, userQuestion) {
-                const url = 'https://app.datarobot.com/api/v2/deployments/68dd4901e523d57cde32d8bb/chat/completions';
+                const url = 'https://app.datarobot.com/api/v2/deployments/68e519c5287763e42cd91f60/chat/completions';
                 
                 const requestBody = {
                     model: 'datarobot-deployed-llm',
